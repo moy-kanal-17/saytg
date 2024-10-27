@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        #chat {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Чат</h1>
+    <div id="chat"></div>
+    <input type="text" id="username" placeholder="Введите ваше имя" />
+    <input type="text" id="message" placeholder="Введите сообщение" />
+    <button id="send">Отправить</button>
+
+    <script>
+        $(document).ready(function() {
+            loadMessages(); // Загрузка сообщений при загрузке страницы
+
+            $("#send").click(function() {
+                var username = $("#username").val();
+                var message = $("#message").val();
+                if (username === "" || message === "") {
+                    alert("Пожалуйста, введите имя и сообщение."); // Проверка на пустые поля
+                    return;
+                }
+                $.post("/send_message", { username: username, message: message }, function(response) {
+                    if (response.success) {
+                        loadMessages(); // Обновление сообщений
+                        $("#message").val(""); // Очистка поля ввода
+                    } else {
+                        alert(response.error);
+                    }
+                });
+            });
+
+            function loadMessages() {
+                $.get("/load_messages", function(data) {
+                    $("#chat").empty(); // Очистка чата
+                    data.forEach(function(msg) {
+                        $("#chat").append("<div><strong>" + msg.username + ":</strong> " + msg.message + " <em>(" + msg.timestamp + ")</em></div>");
+                    });
+                    $("#chat").scrollTop($("#chat")[0].scrollHeight); // Прокрутка вниз
+                });
+            }
+        });
+    </script>
+</body>
+</html>
